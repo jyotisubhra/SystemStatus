@@ -5,14 +5,23 @@
 	    return $file
 	}
 
-	function get-size ([string]$file) {
-		$command = Invoke-Command -scriptblock {param($file)(Get-ChildItem $file).length/1kb} -ArgumentList $file
+	function get-size ([string]$file, [string]$hostName) {
+		
+		if ($hostName -eq "localhost") {
+	    	$command = Invoke-Command -scriptblock {param($file)(Get-ChildItem $file).length/1kb} -ArgumentList $file
+	    } else {
+	    	$command = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Get-ChildItem $file).length/1kb} -ArgumentList $file
+	    }
 		$size = [math]::ceiling($command)
 	    return $size
 	}
 
-	function get-creationTime ([string]$file) {
-		$creationTime = Invoke-Command -scriptblock {param($file)(Get-item $file).creationtime} -ArgumentList $file
+	function get-creationTime ([string]$file, [string]$hostName) {
+		if ($hostName -eq "localhost") {
+	    	$creationTime = Invoke-Command -scriptblock {param($file)(Get-item $file).creationtime} -ArgumentList $file
+	    } else {
+	    	$creationTime = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Get-item $file).creationtime} -ArgumentList $file
+	    }
 	    return $creationTime
 	}
 	
@@ -26,9 +35,13 @@
 		}
 	}
 
-	function get-noOfLines ([string]$file) {
+	function get-noOfLines ([string]$file, [string]$hostName) {
 	    $nlines = 0;
-	    Invoke-Command -scriptblock {param($file)(gc $file -read 1000 | % { $nlines += $_.Length })} -ArgumentList $file
+	    if ($hostName -eq "localhost") {
+	    	Invoke-Command -scriptblock {param($file)(gc $file -read 1000 | % { $nlines += $_.Length })} -ArgumentList $file
+	    } else {
+	    	Invoke-Command -ComputerName $hostName -scriptblock {param($file)(gc $file -read 1000 | % { $nlines += $_.Length })} -ArgumentList $file
+	    }
 		return $nlines
 	}
 	
@@ -38,7 +51,7 @@
 		return $logFile
 	}
 
-	function processIndividualFile($inputFullPath, $logFile) {
+	function processIndividualFile($inputFullPath, $logFile, $hostName) {
 		
 		foreach($line in [System.IO.File]::ReadLines($inputFullPath)) {
 	
@@ -56,22 +69,26 @@
 		$file = get-filename $lines[1] $lines[2]
 	    Write-Host "Filename is: $file"
 	    
+	    if ($hostName -eq "localhost") {
+	    	$command = Invoke-Command -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
+	    } else {
+	    	$command = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
+	    }
 	    
-	    $command = Invoke-Command -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
 	    if (!$command) { 
 	    	Write-Warning "The file $filename is NOT available in the Locations"     	
 	    	$FileStatus = "NAVL"   	
 	  	} else {
 	    	Write-Host "The file $filename is available in the Locations"     	
-	    	$creationTime = get-creationTime "$file"
+	    	$creationTime = get-creationTime "$file" "$hostName"
 	    	if (isOldCreationDate ($creationTime)) {
 	    		$FileStatus = "NAVL"
 	    	} else {
 	    		Write-Host 'The creationDate date is earlier than the current date'
 	    		$date = $creationTime.ToString("yyyyMMdd")
 	    		$time = $creationTime.ToString("HH:mm:ss")
-	    		$noOfLines = get-noOfLines "$file"
-	    		$size = get-size "$file"
+	    		$noOfLines = get-noOfLines "$file" "$hostName"
+	    		$size = get-size "$file" "$hostName"
 	    	}
 	    	
 	    	Write-Host "File Size: $size, No Of Lines : $noOfLines, date: $date, Time: $time, FileStatus: $FileStatus"
@@ -88,10 +105,11 @@
 	$inputText=$args[0]
 	
 	$allInputs = $inputText -split ','
+	$hostName = $allInputs[0]
 	$sourceRoot=$allInputs[1]
 	$destinationRoot=$allInputs[2]
 	
-	Write-Host $allInputs[0]
+	Write-Host $hostName
 	Write-Host $sourceRoot
 	Write-Host $destinationRoot
 	New-Item -ItemType Directory -Force -Path $destinationRoot
@@ -105,7 +123,7 @@
 		Write-Host "logFile name: $logFile"
 		New-Item $logFile -ItemType File
 		
-		$outputValue = processIndividualFile $inputFullPath $logFile
+		$outputValue = processIndividualFile $inputFullPath $logFile $hostName
 		
 	}
 
