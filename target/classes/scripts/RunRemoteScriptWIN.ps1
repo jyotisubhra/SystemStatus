@@ -1,6 +1,11 @@
 ### Functions ###
 
 	function get-filename ([string]$FolderLocation, [string]$FileName) {
+	
+		if ($FileName -Match "DATE") {
+			$date = Get-Date -format "yyyyMMdd"
+			$FileName = $FileName -replace "DATE", $date
+		}
 		$file = "$FolderLocation\$FileName"
 	    return $file
 	}
@@ -27,7 +32,7 @@
 	
 	function isOldCreationDate ($creationTime) {
 	    $creationDate = $creationTime.ToString("yyyyMMdd")
-	    $currentDate = Get-Date | Select-Object Date | Format-Table -HideTableHeaders
+	    $currentDate = Get-Date -format "yyyyMMdd"
 	    if ($creationDate -lt $currentDate) {
 	    	return 1
 		} else {
@@ -83,8 +88,9 @@
 	    	$creationTime = get-creationTime "$file" "$hostName"
 	    	if (isOldCreationDate ($creationTime)) {
 	    		$FileStatus = "NAVL"
-	    	} else {
 	    		Write-Host 'The creationDate date is earlier than the current date'
+	    	} else {
+	    		Write-Host "current File AVL"
 	    		$date = $creationTime.ToString("yyyyMMdd")
 	    		$time = $creationTime.ToString("HH:mm:ss")
 	    		$noOfLines = get-noOfLines "$file" "$hostName"
@@ -126,6 +132,5 @@
 		$outputValue = processIndividualFile $inputFullPath $logFile $hostName
 		
 	}
-
 
 

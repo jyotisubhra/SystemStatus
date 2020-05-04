@@ -1,6 +1,11 @@
 ### Functions ###
 
 	function get-filename ([string]$FolderLocation, [string]$FileName) {
+	
+		if ($FileName -Match "DATE") {
+			$date = Get-Date -format "yyyyMMdd"
+			$FileName = $FileName -replace "DATE", $date
+		}
 		$file = "$FolderLocation\$FileName"
 	    return $file
 	}
