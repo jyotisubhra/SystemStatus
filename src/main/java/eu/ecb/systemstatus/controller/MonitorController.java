@@ -132,13 +132,17 @@ public class MonitorController {
 		String srcLoc = mdpConfiguration.getRootDir()
 								.concat(File.separator)
 								.concat(mdpConfiguration.getOtPrimarySrcLocation())
-								.concat(File.separator)
-								.concat("*");
+								.concat(File.separator);
+								
 		String hostname = mdpConfiguration.getOtPrimaryHostname();
 		
 		//serviceHelper.loadConfig();
 		String scriptToBeexecuted = mdpConfiguration.getOtPrimaryScriptTocall();
-		winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+		if (mdpConfiguration.getOtPrimaryCallApproach().equalsIgnoreCase("INDV_FILE")) {
+			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+		} else {
+			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+		}
 		
 		List<HealthStatus> healthStatusList = service.getStatus(destinationLoc);
 		return healthStatusList;
@@ -172,7 +176,7 @@ public class MonitorController {
 							.concat(mdpConfiguration.getOtSecondaryFolder())
 							.concat(File.separator)
 							.concat(loadTime.toString());
-		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtSecondarySrcLocation()).concat(File.separator).concat("*");
+		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtSecondarySrcLocation()).concat(File.separator);;
 		String hostname = mdpConfiguration.getOtSecondaryHostname();
 		
 		LOGGER.debug("Log Location " + destinationLoc);
@@ -180,8 +184,11 @@ public class MonitorController {
 		
 		//serviceHelper.loadConfig();
 		String scriptToBeexecuted = mdpConfiguration.getOtSecondaryScriptTocall();
-		winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
-		
+		if (mdpConfiguration.getOtSecondaryCallApproach().equalsIgnoreCase("INDV_FILE")) {
+			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+		} else {
+			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+		}
 		List<HealthStatus> healthStatusList = service.getStatus(destinationLoc);
 		return healthStatusList;
 	}
