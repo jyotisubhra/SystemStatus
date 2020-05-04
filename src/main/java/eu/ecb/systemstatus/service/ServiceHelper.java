@@ -93,7 +93,7 @@ public class ServiceHelper {
 			healthStatus = getComponentHealth(fileName, 4, false);	
 			healthStatus.setDisplayType("interface");
 		} else {
-			healthStatus = getComponentHealth(fileName, 7, false);	
+			healthStatus = getComponentHealth(fileName, 7, true);	
 			healthStatus.setDisplayType("file");
 		}
 		return healthStatus;
