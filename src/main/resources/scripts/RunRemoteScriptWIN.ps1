@@ -1,11 +1,16 @@
 ### Functions ###
 
-	function get-filename ([string]$FolderLocation, [string]$FileName) {
+	function Derived-FileName ([string]$FileName) {
 	
 		if ($FileName -Match "DATE") {
 			$date = Get-Date -format "yyyyMMdd"
 			$FileName = $FileName -replace "DATE", $date
 		}
+		return $FileName
+	}
+	
+	function get-filename ([string]$FolderLocation, [string]$FileName) {
+	
 		$file = "$FolderLocation\$FileName"
 	    return $file
 	}
@@ -65,13 +70,15 @@
 		$FolderLocation = $lines[1]
 		$FileName = $lines[2]
 		
+		$derivedFileName = Derived-FileName $FileName
+		
 		$size = "0"
 		$FileStatus = "AVL"
 		$noOfLines = "0"
 		$date = Get-Date -Format "yyyyMMdd"
 	    $time = Get-Date -Format "HH:mm:ss"
 		
-		$file = get-filename $lines[1] $lines[2]
+		$file = get-filename $lines[1] $derivedFileName
 	    Write-Host "Filename is: $file"
 	    
 	    if ($hostName -eq "localhost") {
@@ -99,7 +106,7 @@
 	    	
 	    	Write-Host "File Size: $size, No Of Lines : $noOfLines, date: $date, Time: $time, FileStatus: $FileStatus"
 	    }  
-	    $outputValue = $lines[0] + "|"  + $FolderLocation + "|" + $FileName + "|"  + $date + "|" + $time + "|" + $size + "|"  + $noOfLines + "|" + $FileStatus
+	    $outputValue = $lines[0] + "|"  + $FolderLocation + "|" + $derivedFileName + "|"  + $date + "|" + $time + "|" + $size + "|"  + $noOfLines + "|" + $FileStatus
 	    Write-Host "output is: $outputValue" 
 	    Add-Content -Value $outputValue -Path $logFile
 		}
