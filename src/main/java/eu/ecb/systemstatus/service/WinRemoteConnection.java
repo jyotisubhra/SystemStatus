@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +17,7 @@ import com.profesorfalken.jpowershell.PowerShell;
 import com.profesorfalken.jpowershell.PowerShellNotAvailableException;
 import com.profesorfalken.jpowershell.PowerShellResponse;
 
+import eu.ecb.systemstatus.configuration.GeneralConfiguration;
 import eu.ecb.systemstatus.configuration.MdpConfiguration;
 
 @Configuration
@@ -26,31 +26,13 @@ public class WinRemoteConnection {
 	private static Logger LOGGER = LogManager.getLogger(WinRemoteConnection.class);
 	@Autowired
 	MdpConfiguration mdpConfig;
+	@Autowired
+	GeneralConfiguration genConfig;
 	
 	public void callRemoteSystem(String scriptToBeexecuted, String hostname, String srcLoc, String destinationLoc) {
 
 
 		File file = new File(getClass().getClassLoader().getResource(scriptToBeexecuted).getFile());
-
-		/*Process proc;
-		 * Runtime runtime = Runtime.getRuntime();
-		try {
-			proc = runtime.exec("powershell " + file.getAbsolutePath() + " -names " + "hello");
-			proc.getOutputStream().close();
-	        InputStream is = proc.getInputStream();
-	        InputStreamReader isr = new InputStreamReader(is);
-	        BufferedReader reader = new BufferedReader(isr);
-	        String line;
-	        while ((line = reader.readLine()) != null)
-	        {
-	            LOGGER.debug(line);
-	        }
-	        reader.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-
 		try (PowerShell powerShell = PowerShell.openSession()) {       
 			//Increase timeout to give enough time to the script to finish
 			Map<String, String> config = new HashMap<String, String>();
@@ -60,15 +42,49 @@ public class WinRemoteConnection {
 			//Execute script
 			PowerShellResponse response = powerShell.configuration(config)
 					.executeScript(file.getAbsolutePath(), params);
-
-			//Print results if the script
-			LOGGER.debug("Script output:" + response.getCommandOutput());
+			
+			if (genConfig.getViewPowershellOutput().equalsIgnoreCase("true")) {
+				LOGGER.debug("Script output:" + response.getCommandOutput());
+			}
+			powerShell.close();
 		} catch(PowerShellNotAvailableException ex) {
 			//Handle error when PowerShell is not available in the system
 			//Maybe try in another way?
 		}
 	}
 	
+	public void callRemotePerFile(String scriptToBeexecuted, String hostname, String inputLoc, String destinationLoc) {
+
+		try {
+			Files.list(Paths.get(inputLoc)).filter(Files::isRegularFile).forEach(path -> processEachRemoteFile(hostname, path.toAbsolutePath().toString(), scriptToBeexecuted, destinationLoc));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void processEachRemoteFile(String hostname, String inputFilePath, String scriptToBeexecuted, String destinationLoc) {
+		
+		File file = new File(getClass().getClassLoader().getResource(scriptToBeexecuted).getFile());
+		try (PowerShell powerShell = PowerShell.openSession()) {       
+			//Increase timeout to give enough time to the script to finish
+			Map<String, String> config = new HashMap<String, String>();
+			config.put("maxWait", mdpConfig.getScriptWaitTime());
+
+			String params = hostname.concat(",").concat(inputFilePath).concat(",").concat(destinationLoc);
+			PowerShellResponse response = powerShell.configuration(config)
+					.executeScript(file.getAbsolutePath(), params);
+			if (genConfig.getViewPowershellOutput().equalsIgnoreCase("true")) {
+				LOGGER.debug("Script output:" + response.getCommandOutput());
+			}
+			powerShell.close();
+		} catch(PowerShellNotAvailableException ex) {
+			//Handle error when PowerShell is not available in the system
+			//Maybe try in another way?
+		}
+		
+	}
+
 	public static void executeRemoteWin(String inputLoc) throws IOException {
 		
 		Files.list(Paths.get(inputLoc)).filter(Files::isRegularFile).forEach(path -> {
