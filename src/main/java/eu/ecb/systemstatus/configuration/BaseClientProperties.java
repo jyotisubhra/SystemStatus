@@ -4,6 +4,7 @@ public class BaseClientProperties {
 	
 	
 	private String headerSpecificLink;
+	private String viewPowershellOutput;
 	private String scheduleFolderRoot;
 	private String scheduleFolderName;
 	private String scheduleFileName;
@@ -22,11 +23,13 @@ public class BaseClientProperties {
 	private String otPrimaryHostname;
 	private String otPrimarySrcLocation;
 	private String otPrimaryScriptTocall;
+	private String otPrimaryCallApproach;
 	
 	private String otSecondaryFolder;
 	private String otSecondaryHostname;
 	private String otSecondarySrcLocation;
 	private String otSecondaryScriptTocall;
+	private String otSecondaryCallApproach;
 	private String scriptWaitTime;
 	
 	
@@ -43,6 +46,12 @@ public class BaseClientProperties {
 	private String envAccessPassword;
 	
 	
+	public String getViewPowershellOutput() {
+		return viewPowershellOutput;
+	}
+	public void setViewPowershellOutput(String viewPowershellOutput) {
+		this.viewPowershellOutput = viewPowershellOutput;
+	}
 	public String getScriptLogFolder() {
 		return scriptLogFolder;
 	}
@@ -228,6 +237,18 @@ public class BaseClientProperties {
 	}
 	public void setOtSecondaryScriptTocall(String otSecondaryScriptTocall) {
 		this.otSecondaryScriptTocall = otSecondaryScriptTocall;
+	}
+	public String getOtPrimaryCallApproach() {
+		return otPrimaryCallApproach;
+	}
+	public void setOtPrimaryCallApproach(String otPrimaryCallApproach) {
+		this.otPrimaryCallApproach = otPrimaryCallApproach;
+	}
+	public String getOtSecondaryCallApproach() {
+		return otSecondaryCallApproach;
+	}
+	public void setOtSecondaryCallApproach(String otSecondaryCallApproach) {
+		this.otSecondaryCallApproach = otSecondaryCallApproach;
 	}
 	
 	
