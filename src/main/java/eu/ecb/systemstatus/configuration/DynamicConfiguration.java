@@ -37,7 +37,7 @@ public class DynamicConfiguration {
 	
 	public Map<String, String> getMap() {
 		
-		LOGGER.debug("inside method getMap");
+		//LOGGER.debug("inside method getMap");
 		
 		Properties properties = new Properties();
 		FileInputStream inputStream = null;
