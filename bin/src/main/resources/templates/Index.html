@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>SystemStatus</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="../static/css/Layout.css" th:href="@{/css/Layout.css}" rel="stylesheet" />
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet" />
+</head>
+<body>
+	<div th:replace="fragments/topnav :: generalNavbar"></div>
+	<div>
+		<table>
+			<tbody>
+				<tr
+					th:style="${healthStatus.getDisplayTextResult()} == OK ? 'background: #468038' : 'background: #a84751'"
+					th:each="healthStatus : ${allHealths}">
+					<td th:text="${healthStatus.getDisplayText()}"></td>
+					<td th:text="${healthStatus.getHealthStatus()}"></td>
+					<td><a th:href="@{'/status/' + ${healthStatus.getDisplayType()} (logFile=${healthStatus.getLogFile()})}">view Details</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>

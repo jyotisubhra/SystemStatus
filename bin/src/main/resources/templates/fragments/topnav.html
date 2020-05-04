@@ -1,0 +1,43 @@
+<div th:fragment="generalOld"> 
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	  <a class="navbar-brand">Application Health Page</a>
+	 <div class="collapse navbar-collapse" id="navbarNav">
+	    <ul class="navbar-nav">
+	      <li class="nav-item active">
+	        <a class="nav-link" href="/oTstatus">OT-SystemStatus <span class="sr-only">(current)</span></a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link" href="/aCstatus">AC-SystemStatus</a>
+	      </li>
+	    </ul>
+	  </div>
+	</nav>
+</div>
+<div th:fragment="generalNavbar">
+<nav class="navbar navbar-expand-lg navbar navbar-dark bg-dark">
+  <a class="navbar-brand" href="/oTPstatus"><label>Application Health Page</label></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav" th:each="header : ${headers}">
+      <a class="nav-item nav-link active" th:href="@{'/' + ${header.getRequestLink()}}"><label th:text="${header.getHeaderName()}"></label><span class="sr-only">(current)</span></a>      
+    </div>
+  </div>
+</nav>
+</div>
+<div th:fragment="navbar">
+<nav class="navbar navbar-expand-lg navbar navbar-dark bg-dark">
+  <a class="navbar-brand" href="/oTPstatus">Home</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link active" href="/oTPstatus">OT-P1-SystemStatus<span class="sr-only">(current)</span></a>
+      <a class="nav-item nav-link" href="/oTSstatus">OT-P2-SystemStatus</a>
+      <a class="nav-item nav-link" href="/aCstatus">AC-SystemStatus</a>
+    </div>
+  </div>
+</nav>
+</div>
