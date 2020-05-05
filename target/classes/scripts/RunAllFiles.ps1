@@ -65,27 +65,9 @@
 		return $logFile
 	}
 
-### Start of process ###
-
-
-	$inputText=$args[0]
+	function processIndividualFile($inputFullPath, $logFile, $hostName) {
 		
-	$allInputs = $inputText -split ','
-	$hostName = $allInputs[0]
-	$inputFullPath = $allInputs[1]
-	$destinationRoot=$allInputs[2]
-		
-	Write-Host $hostName
-	Write-Host $inputFullPath
-	Write-Host $destinationRoot
-	
-	New-Item -ItemType Directory -Force -Path $destinationRoot
-	
-	$logFile = get-LogFile $inputFullPath $destinationRoot
-	Write-Host "logFile name: $logFile"
-	New-Item $logFile -ItemType File
-	
-	foreach($line in [System.IO.File]::ReadLines($inputFullPath)) {
+		foreach($line in [System.IO.File]::ReadLines($inputFullPath)) {
 	
 		$lines = $line -split ','
 		$ID = $lines[0]
@@ -131,5 +113,34 @@
 	    $outputValue = $lines[0] + "|"  + $FolderLocation + "|" + $derivedFileName + "|"  + $date + "|" + $time + "|" + $size + "|"  + $noOfLines + "|" + $FileStatus
 	    Write-Host "output is: $outputValue" 
 	    Add-Content -Value $outputValue -Path $logFile
+		}
 	}
+
+### Start of process ###
+
+
+	$inputText=$args[0]
 	
+	$allInputs = $inputText -split ','
+	$hostName = $allInputs[0]
+	$sourceRoot=$allInputs[1]
+	$destinationRoot=$allInputs[2]
+	
+	Write-Host $hostName
+	Write-Host $sourceRoot
+	Write-Host $destinationRoot
+	New-Item -ItemType Directory -Force -Path $destinationRoot
+	
+	$files = Get-ChildItem $sourceRoot -Filter *.properties
+	foreach ($inputFile in $files) {
+		$inputFullPath = $inputFile.FullName
+		Write-Host "Iterate Filename is: $inputFullPath"
+		
+		$logFile = get-LogFile $inputFullPath $destinationRoot
+		Write-Host "logFile name: $logFile"
+		New-Item $logFile -ItemType File
+		
+		$outputValue = processIndividualFile $inputFullPath $logFile $hostName
+		
+	}
+

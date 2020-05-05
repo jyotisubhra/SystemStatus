@@ -2,9 +2,13 @@
 
 	function Derived-FileName ([string]$FileName) {
 	
-		if ($FileName -Match "DATE") {
+		if ($FileName -Match "CURRENT_DATE") {
 			$date = Get-Date -format "yyyyMMdd"
-			$FileName = $FileName -replace "DATE", $date
+			$FileName = $FileName -replace "CURRENT_DATE", $date
+		}
+		if ($FileName -Match "PREVIOUS_DATE") {
+			$previousDate = [DateTime]::Today.AddDays(-1).ToString("yyyyMMdd")
+			$FileName = $FileName -replace "PREVIOUS_DATE", $previousDate
 		}
 		return $FileName
 	}
@@ -18,7 +22,7 @@
 	function get-size ([string]$file, [string]$hostName) {
 		
 		if ($hostName -eq "localhost") {
-	    	$command = Invoke-Command -scriptblock {param($file)(Get-ChildItem $file).length/1kb} -ArgumentList $file
+	    	$command = (Get-ChildItem $file).length/1kb
 	    } else {
 	    	$command = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Get-ChildItem $file).length/1kb} -ArgumentList $file
 	    }
@@ -28,7 +32,7 @@
 
 	function get-creationTime ([string]$file, [string]$hostName) {
 		if ($hostName -eq "localhost") {
-	    	$creationTime = Invoke-Command -scriptblock {param($file)(Get-item $file).creationtime} -ArgumentList $file
+	    	$creationTime = (Get-item $file).creationtime
 	    } else {
 	    	$creationTime = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Get-item $file).creationtime} -ArgumentList $file
 	    }
@@ -48,7 +52,7 @@
 	function get-noOfLines ([string]$file, [string]$hostName) {
 	    $nlines = 0;
 	    if ($hostName -eq "localhost") {
-	    	Invoke-Command -scriptblock {param($file)(gc $file -read 1000 | % { $nlines += $_.Length })} -ArgumentList $file
+	    	gc $file -read 1000 | % { $nlines += $_.Length }
 	    } else {
 	    	Invoke-Command -ComputerName $hostName -scriptblock {param($file)(gc $file -read 1000 | % { $nlines += $_.Length })} -ArgumentList $file
 	    }
@@ -82,7 +86,7 @@
 	    Write-Host "Filename is: $file"
 	    
 	    if ($hostName -eq "localhost") {
-	    	$command = Invoke-Command -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
+	    	$command = Test-Path $file
 	    } else {
 	    	$command = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
 	    }
@@ -139,5 +143,4 @@
 		$outputValue = processIndividualFile $inputFullPath $logFile $hostName
 		
 	}
-
 
