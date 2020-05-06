@@ -233,10 +233,14 @@ public class MonitorController {
 		
 		//String loadTime = requestParams.get("loadTime");
 		String logFile = requestParams.get("logFile");
+		String pageHeader = new File(logFile).getName().replaceFirst("[.][^.]+$", "").toUpperCase().replace("_", " ");
 		
 		List<FileAttributes> allFileExeDetails = service.getAllFileDetails(logFile);
 		model.addAttribute("allFileExeDetails", allFileExeDetails);
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
+		model.addAttribute("detailText" , genConfiguration.getFileDetailsPageText());
+		model.addAttribute("pageHeader", pageHeader);
+		
 		return "FileExecutionDetails";
 	}
 	

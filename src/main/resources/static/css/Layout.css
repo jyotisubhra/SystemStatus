@@ -2,9 +2,8 @@ table {
 font-family: arial, sans-serif;
 border-collapse: collapse;
 width: 60%;
-position:absolute;
-top:20%;
-left:20%; 
+margin: 0px auto;
+margin-top: 6%; 
 background-color: #0e6a73;
 }
 		

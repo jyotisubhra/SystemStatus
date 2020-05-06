@@ -15,6 +15,7 @@ public class BaseClientProperties {
 	private String winScriptTocall;
 	private String sshScriptTocall;
 	private String envType;
+	private String fileDetailsPageText;
 	
 	private String rootDir;
 	private String otEnvType;
@@ -249,6 +250,12 @@ public class BaseClientProperties {
 	}
 	public void setOtSecondaryCallApproach(String otSecondaryCallApproach) {
 		this.otSecondaryCallApproach = otSecondaryCallApproach;
+	}
+	public String getFileDetailsPageText() {
+		return fileDetailsPageText;
+	}
+	public void setFileDetailsPageText(String fileDetailsPageText) {
+		this.fileDetailsPageText = fileDetailsPageText;
 	}
 	
 	

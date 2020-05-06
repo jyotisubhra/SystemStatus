@@ -9,6 +9,10 @@
 <body>
 <div th:replace="fragments/topnav :: generalNavbar"></div>
 <div>
+<h6 style="text-align:Center"><label th:text="${pageHeader}"></label></h6>
+<h6 style="text-align:Center"><label th:text="${detailText}"></label></h6>
+</div>
+<div>
 	<table>
 		<thead>
 			<tr>
@@ -23,6 +27,7 @@
 			</tr>
 		</thead>
 		<tbody>
+			<tr></tr>
 			<tr th:style="${fileAttributes.getStatus()} == OK ? 'background: #468038' : 'background: #a84751'" th:each="fileAttributes : ${allFileExeDetails}">
 			     <td th:text="${fileAttributes.getCaseId()}"></td>
 			     <td th:text="${fileAttributes.getFileLocation()}"></td>
