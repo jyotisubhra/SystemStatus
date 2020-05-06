@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +35,7 @@ public class ServiceHelper {
 	MdpConfiguration configuration;
 	
 	@Autowired
-	DynamicConfiguration appConfig;
+	DynamicConfiguration dynConfig;
 
 	
 	private HealthStatus convertHealthStatus(String displatText, String status, String executionStatus, String logFile) {
@@ -47,44 +48,6 @@ public class ServiceHelper {
 
 		return healthStatus;
 	}
-	
-	/*public HealthStatus getOtMtsEarlyRun() {
-
-		String fileName = "C:/OT-Config/mts_early_runs.properties";	
-		HealthStatus healthStatus = getComponentHealth(fileName, 7, true);		
-		return healthStatus;
-	}
-	
-	public HealthStatus getOtMtsRepoTradeRun() {
-		String fileName = "C:/OT-Config/mts_repoTrade_run.properties";	
-		HealthStatus healthStatus = getComponentHealth(fileName, 7, true);		
-		return healthStatus;
-	}
-	
-	public HealthStatus getOtIcapRun() {
-		String fileName = "C:/OT-Config/icap_run.properties";	
-		HealthStatus healthStatus = getComponentHealth(fileName, 7, true);		
-		return healthStatus;
-	}
-
-	public HealthStatus getOtGdpDataSdwExportRun() {
-		String fileName = "C:/OT-Config/gdp_data_sdw_export.properties";	
-		HealthStatus healthStatus = getComponentHealth(fileName, 7, true);		
-		return healthStatus;
-	}
-	
-	public HealthStatus getOtProcessing() {
-
-		String fileName = "C:/OT-Config/processing.properties";
-		HealthStatus healthStatus = getComponentHealth(fileName, 7, true);	
-		return healthStatus;
-	}
-	public HealthStatus getOtInterface() {
-
-		String fileName = "C:/OT-Config/interface.properties";
-		HealthStatus healthStatus = getComponentHealth(fileName, 4, false);		
-		return healthStatus;
-	}*/
 	
 	public HealthStatus getComponetStatus(String fileName) {
 
@@ -185,39 +148,123 @@ public class ServiceHelper {
 	private boolean isValidEntry(String reqId) {
 
 		boolean isValidRecord = false;
-		String scheduledTime = null;
-		if (appConfig.getMap().containsKey(reqId)) {
-			scheduledTime = appConfig.getMap().get(reqId);
+		String scheduledDetail = null;
+		if (dynConfig.getMap().containsKey(reqId)) {
+			scheduledDetail = dynConfig.getMap().get(reqId);
 		}		
-		if (null != scheduledTime) {
+		if (null != scheduledDetail) {
 
-			String[] scheduleTimeDetails = scheduledTime.split(":");
-			String hour = scheduleTimeDetails[0];
-			String mint = scheduleTimeDetails[1];
-			Calendar caln = Calendar.getInstance();
-			caln.set(Calendar.HOUR_OF_DAY,Integer.valueOf(hour));
-			caln.set(Calendar.MINUTE,Integer.valueOf(mint));
-			caln.set(Calendar.SECOND,0);
-			caln.set(Calendar.MILLISECOND,0);
-
-			Date scheduledHrs = caln.getTime();
-			//LOGGER.debug("Scheduled Time = " + scheduledHrs);
+			Date[] scheduledHrs = getScheduleTime(scheduledDetail.trim());
+			String scheduleCondition = getScheduleCondition(scheduledDetail.trim());
 
 			//Current Time
 			Calendar cal = Calendar.getInstance();
 			Date currentHrs = cal.getTime();
 			//LOGGER.debug("Current Time = " + currentHrs);
 
-			if (currentHrs.after(scheduledHrs)) {
-				//LOGGER.debug("Current time is after scheduled time");
-				isValidRecord = true;
-				noValidRecord++;
-			} else {
-				noInvalidRecord++;
+			if (scheduledHrs == null ) {
+				scheduledHrs = new Date[1];
+				scheduledHrs[0] = getDefaultValue();
 			}
+			
+			Arrays.stream(scheduledHrs).forEach(LOGGER::debug);
+			LOGGER.debug("scheduleCondition = " + scheduleCondition);
+			
+			if (scheduleCondition.equalsIgnoreCase("BEFORE")) {
+				if (currentHrs.before(scheduledHrs[0])) {
+					LOGGER.debug("Current time Matches with BEFORE Time");
+					isValidRecord = true;
+					noValidRecord++;
+				} else {
+					noInvalidRecord++;
+				}
+			} else if (scheduleCondition.equalsIgnoreCase("AFTER")) {
+				if (currentHrs.after(scheduledHrs[0])) {
+					LOGGER.debug("Current time Matches with AFTER Time");
+					isValidRecord = true;
+					noValidRecord++;
+				} else {
+					noInvalidRecord++;
+				}
 
+			} else if (scheduleCondition.equalsIgnoreCase("BETWEEN")) {
+				if (currentHrs.after(scheduledHrs[0]) && currentHrs.before(scheduledHrs[1])) {
+					LOGGER.debug("Current time Matches with BETWEEN Time");
+					isValidRecord = true;
+					noValidRecord++;
+				} else {
+					noInvalidRecord++;
+				}
+			} else {
+				if (currentHrs.after(scheduledHrs[0])) {
+					LOGGER.debug("Current time taking DEFAULT AFTER Time");
+					isValidRecord = true;
+					noValidRecord++;
+				} else {
+					noInvalidRecord++;
+				}
+			}
 		}
 		return isValidRecord;
+	}
+
+	private Date getDefaultValue() {
+		
+		Calendar caln = Calendar.getInstance();
+		caln.set(Calendar.HOUR_OF_DAY,Integer.valueOf("00"));
+		caln.set(Calendar.MINUTE,Integer.valueOf("05"));
+		caln.set(Calendar.SECOND,0);
+		caln.set(Calendar.MILLISECOND,0);
+
+		return caln.getTime();
+	}
+
+	private String getScheduleCondition(String scheduledDetail) {
+		LOGGER.debug("Whole Schedule Condition: " + scheduledDetail);
+		String[] details = scheduledDetail.split("_");
+		return details[0].trim();
+	}
+
+	private Date[] getScheduleTime(String scheduledDetail) {
+		
+		String[] details = scheduledDetail.split("_");
+		Date[] resultValue = null;
+		
+		if (details.length > 0) {			
+			resultValue = new Date[details.length];
+			
+			if (details.length == 1) {
+				resultValue[0] = getTime(details[0].trim().split(":"));
+			} else if (details.length == 2) {
+				resultValue[0] = getTime(details[1].trim().split(":"));
+			} else if (details.length == 3) {
+				resultValue[0] = getTime(details[1].trim().split(":"));
+				resultValue[1] = getTime(details[2].trim().split(":"));
+			} else {
+				//TODO - throw error - scheduler not set properly
+				LOGGER.warn("scheduler not set properly, setting DEFAULT Schedule");
+			}
+		} else {
+			//TODO - throw error - scheduler not set properly
+			LOGGER.warn("scheduler not set properly, setting DEFAULT Schedule");
+		}
+		return resultValue;
+	}
+
+	private Date getTime(String[] scheduleTimeDetails) {
+		
+		String hour = scheduleTimeDetails[0].trim();
+		String mint = scheduleTimeDetails[1].trim();
+		String secs = scheduleTimeDetails[2].trim();
+		Calendar caln = Calendar.getInstance();
+		caln.set(Calendar.HOUR_OF_DAY,Integer.valueOf(hour));
+		caln.set(Calendar.MINUTE,Integer.valueOf(mint));
+		caln.set(Calendar.SECOND,Integer.valueOf(secs));
+		caln.set(Calendar.MILLISECOND,0);
+
+		Date scheduledHrs = caln.getTime();
+		//LOGGER.debug("Scheduled Time = " + scheduledHrs);
+		return scheduledHrs;
 	}
 
 	public List<FileAttributes> convertIntoFileAttributes(List<String> alltStatus) {
@@ -250,42 +297,6 @@ public class ServiceHelper {
 		return allFileStatus;
 	}
 	
-	/*public void loadConfig() {
-
-		Properties properties = new Properties();
-		FileInputStream inputStream = null;
-		// add  some properties  here
-		try {
-			String scheduleFileName = configuration.getScheduleFolderRoot()
-									.concat(File.separator)
-									.concat(configuration.getScheduleFolderName())
-									.concat(File.separator)
-									.concat(configuration.getScheduleFileName());
-			
-			inputStream = new FileInputStream(scheduleFileName);
-			properties.load(inputStream);
-		} catch (Exception e) {
-			e.printStackTrace();
-			LOGGER.debug("Some issue finding or loading file....!!! " + e.getMessage());
-
-		} finally {
-			try {
-				inputStream.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-
-		map = new HashMap<String, String>();
-		map.putAll(properties.entrySet()
-				.stream()
-				.collect(Collectors.toMap(e -> e.getKey().toString(), 
-						e -> e.getValue().toString())));	
-		//map.forEach((k, v) -> LOGGER.debug((k + "----" + v)));
-
-	}*/
-
 	public List<ExternalInterfaceConn> convertIntoExterIntrfcConn(List<String> alltStatus) {
 
 		List<ExternalInterfaceConn> allExternalIntrfcConn = new ArrayList<ExternalInterfaceConn>();
