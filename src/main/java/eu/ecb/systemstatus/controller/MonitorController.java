@@ -40,8 +40,7 @@ public class MonitorController {
 
 	
 	@GetMapping("/systemstatus")
-	public String getStatus(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public String getStatus(@RequestParam Map<String,String> requestParams, Model model) {
 
 		List<HealthStatus> healthStatusList = getGenericAllCompStatus();
 		model.addAttribute("allHealths", healthStatusList);
@@ -52,8 +51,7 @@ public class MonitorController {
 	}
 	
 	@GetMapping("/systemstatus/txt")
-	public @ResponseBody String getStatusTxt(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public @ResponseBody String getStatusTxt(@RequestParam Map<String,String> requestParams, Model model) {
 
 		List<HealthStatus> healthStatusList = getGenericAllCompStatus();
 		String value = service.convertIntoText(healthStatusList);
@@ -61,8 +59,7 @@ public class MonitorController {
 	}
 	
 	@GetMapping("/systemstatus/html")
-	public String getStatusHtml(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public String getStatusHtml(@RequestParam Map<String,String> requestParams, Model model) {
 
 		List<HealthStatus> healthStatusList = getGenericAllCompStatus();
 		String value = service.convertIntoText(healthStatusList);
@@ -72,7 +69,6 @@ public class MonitorController {
 	
 	private List<HealthStatus> getGenericAllCompStatus() {
 
-		//get current timestamp - which will be used to create a folder with this name
 		Long loadTime = Calendar.getInstance().getTimeInMillis();
 
 		String destinationLoc = genConfiguration.getRootDir()
@@ -80,14 +76,13 @@ public class MonitorController {
 				.concat(genConfiguration.getScriptLogFolder())
 				.concat(File.separator)
 				.concat(loadTime.toString());
-		String srcLoc = genConfiguration.getRootDir()
-				.concat(File.separator)
-				.concat(genConfiguration.getScriptPropertiesLocation())
-				.concat(File.separator)
-				.concat("*");
+		//String srcLoc = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getScriptPropertiesLocation()).concat(File.separator).concat("*");
 		String hostname = genConfiguration.getMonitoringHostName();
-
-		//serviceHelper.loadConfig();
+		
+		String srcLoc = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getScriptPropertiesLocation()).concat(File.separator).concat(loadTime.toString());
+		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getMapFolder()).concat(File.separator).concat(genConfiguration.getFileMapFile());
+		serviceHelper.createInputFilesForScripts(fileMapping, srcLoc, false);
+		
 		if (genConfiguration.getEnvType().equalsIgnoreCase("Windows")) {
 			String scriptToBeexecuted = genConfiguration.getWinScriptTocall();
 			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
@@ -100,10 +95,9 @@ public class MonitorController {
 	
 	
 	@GetMapping("/oTPstatus")
-	public String otpStatus(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public String otpStatus(@RequestParam Map<String,String> requestParams, Model model) {
 
-		List<HealthStatus> healthStatusList = getOtPrimaryComponentStatus();
+		List<HealthStatus> healthStatusList = getOtPrimaryComponentStatus(requestParams.get("extensiveReport"));
 		model.addAttribute("allHealths", healthStatusList);
 		//model.addAttribute("loadTime", loadTime.toString());
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
@@ -111,32 +105,32 @@ public class MonitorController {
 	}
 	
 	@GetMapping("/oTPstatus/txt")
-	public @ResponseBody String otpStatusTxt(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public @ResponseBody String otpStatusTxt(@RequestParam Map<String,String> requestParams, Model model) {
 
-		List<HealthStatus> healthStatusList = getOtPrimaryComponentStatus();
+		List<HealthStatus> healthStatusList = getOtPrimaryComponentStatus(requestParams.get("extensiveReport"));
 		String value = service.convertIntoText(healthStatusList);
 		return value;
 	}
 
-	private List<HealthStatus> getOtPrimaryComponentStatus() {
+	private List<HealthStatus> getOtPrimaryComponentStatus(String extensiveReport) {
 		
-		//get current timestamp - which will be used to create a folder with this name
 		Long loadTime = Calendar.getInstance().getTimeInMillis();
-		
+		boolean isExtensive = false;
+		if (extensiveReport != null && extensiveReport.equalsIgnoreCase("true")) {
+			isExtensive = true;
+		}
 		String destinationLoc = mdpConfiguration.getRootDir()
 								.concat(File.separator)
 								.concat(mdpConfiguration.getOtPrimaryFolder())
 								.concat(File.separator)
 								.concat(loadTime.toString());
-		String srcLoc = mdpConfiguration.getRootDir()
-								.concat(File.separator)
-								.concat(mdpConfiguration.getOtPrimarySrcLocation())
-								.concat(File.separator);
-								
+									
 		String hostname = mdpConfiguration.getOtPrimaryHostname();
 		
-		//serviceHelper.loadConfig();
+		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtPrimarySrcLocation()).concat(File.separator).concat(loadTime.toString());
+		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getMapFolder()).concat(File.separator).concat(genConfiguration.getFileMapFile());
+		serviceHelper.createInputFilesForScripts(fileMapping, srcLoc, isExtensive);
+		
 		String scriptToBeexecuted = mdpConfiguration.getOtPrimaryScriptTocall();
 		if (mdpConfiguration.getOtPrimaryCallApproach().equalsIgnoreCase("INDV_FILE")) {
 			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
@@ -149,40 +143,42 @@ public class MonitorController {
 	}
 	
 	@GetMapping("/oTSstatus")
-	public String otsStatus(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public String otsStatus(@RequestParam Map<String,String> requestParams, Model model) {
 		
-		List<HealthStatus> healthStatusList = getOtSecondaryComponentStatus();
+		List<HealthStatus> healthStatusList = getOtSecondaryComponentStatus(requestParams.get("extensiveReport"));
 		model.addAttribute("allHealths", healthStatusList);
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
 		return "SystemStatus";
 	}
 	
 	@GetMapping("/oTSstatus/txt")
-	public @ResponseBody String otsStatusTxt(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public @ResponseBody String otsStatusTxt(@RequestParam Map<String,String> requestParams, Model model) {
 		
-		List<HealthStatus> healthStatusList = getOtSecondaryComponentStatus();
+		List<HealthStatus> healthStatusList = getOtSecondaryComponentStatus(requestParams.get("extensiveReport"));
 		String value = service.convertIntoText(healthStatusList);
 		return value;
 	}
 
-	private List<HealthStatus> getOtSecondaryComponentStatus() {
-		//get current timestamp - which will be used to create a folder with this name
+	private List<HealthStatus> getOtSecondaryComponentStatus(String extensiveReport) {
 		Long loadTime = Calendar.getInstance().getTimeInMillis();
+		
+		boolean isExtensive = false;
+		if (extensiveReport != null && extensiveReport.equalsIgnoreCase("true")) {
+			isExtensive = true;
+		}
 		
 		String destinationLoc = mdpConfiguration.getRootDir()
 							.concat(File.separator)
 							.concat(mdpConfiguration.getOtSecondaryFolder())
 							.concat(File.separator)
 							.concat(loadTime.toString());
-		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtSecondarySrcLocation()).concat(File.separator);;
+		
 		String hostname = mdpConfiguration.getOtSecondaryHostname();
 		
-		LOGGER.debug("Log Location " + destinationLoc);
-		LOGGER.debug("hostname " + hostname);
+		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtSecondarySrcLocation()).concat(File.separator).concat(loadTime.toString());
+		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getMapFolder()).concat(File.separator).concat(genConfiguration.getFileMapFile());
+		serviceHelper.createInputFilesForScripts(fileMapping, srcLoc, isExtensive);
 		
-		//serviceHelper.loadConfig();
 		String scriptToBeexecuted = mdpConfiguration.getOtSecondaryScriptTocall();
 		if (mdpConfiguration.getOtSecondaryCallApproach().equalsIgnoreCase("INDV_FILE")) {
 			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
@@ -194,8 +190,7 @@ public class MonitorController {
 	}
 	
 	@GetMapping("/aCstatus")
-	public String acStatus(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public String acStatus(@RequestParam Map<String,String> requestParams, Model model) {
 
 		List<HealthStatus> healthStatusList = getAcAllComponentStatus();
 		model.addAttribute("allHealths", healthStatusList);
@@ -204,8 +199,7 @@ public class MonitorController {
 	}
 	
 	@GetMapping("/aCstatus/txt")
-	public @ResponseBody String acStatusTxt(@RequestParam(name="time", required=false, 
-	defaultValue="10:00") String time, Model model) {
+	public @ResponseBody String acStatusTxt(@RequestParam Map<String,String> requestParams, Model model) {
 
 		List<HealthStatus> healthStatusList = getAcAllComponentStatus();
 		String value = service.convertIntoText(healthStatusList);
@@ -213,13 +207,11 @@ public class MonitorController {
 	}
 
 	private List<HealthStatus> getAcAllComponentStatus() {
-		//get current timestamp - which will be used to create a folder with this name
 		Long loadTime = Calendar.getInstance().getTimeInMillis();
 		String destinationLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getAcPrimaryFolder()).concat(File.separator).concat(loadTime.toString());
 		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getAcSrcLocation()).concat(File.separator).concat("*");
 		String hostname = mdpConfiguration.getAcPrimaryHostname();
 				
-		//serviceHelper.loadConfig();
 		String scriptToBeexecuted = mdpConfiguration.getAcScriptTocall();
 		winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
 		

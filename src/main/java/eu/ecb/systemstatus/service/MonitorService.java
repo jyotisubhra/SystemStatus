@@ -39,14 +39,6 @@ public class MonitorService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//healthStatusList.add(serviceHelper.getOtMtsEarlyRun() );
-		//healthStatusList.add(serviceHelper.getOtMtsRepoTradeRun() );
-		//healthStatusList.add(serviceHelper.getOtIcapRun() );
-		//healthStatusList.add(serviceHelper.getOtGdpDataSdwExportRun() );
-		//healthStatusList.add(serviceHelper.getOtProcessing());;
-		//healthStatusList.add(serviceHelper.getOtInterface());
-		
 		return healthStatusList;
 	}
 
@@ -55,7 +47,7 @@ public class MonitorService {
 		List<FileAttributes> allFileDetails = null;
 		try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
 			//List<String> alltStatus = stream.collect(Collectors.toList());
-			List<String> alltStatus = stream.filter(line -> serviceHelper.chkValidRecords(line)).collect(Collectors.toList());
+			List<String> alltStatus = stream.collect(Collectors.toList());
 			//LOGGER.debug(alltStatus);
 			allFileDetails = serviceHelper.convertIntoFileAttributes(alltStatus);
 			
@@ -70,7 +62,6 @@ public class MonitorService {
 		List<ExternalInterfaceConn> allInterfaceDetails = null;
 		try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
 			List<String> alltStatus = stream.collect(Collectors.toList());
-			//List<String> alltStatus = stream.filter(line -> serviceHelper.chkValidRecords(line)).collect(Collectors.toList());
 			//LOGGER.debug(alltStatus);
 			allInterfaceDetails = serviceHelper.convertIntoExterIntrfcConn(alltStatus);
 			

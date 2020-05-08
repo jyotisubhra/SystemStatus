@@ -2,11 +2,15 @@ package eu.ecb.systemstatus.configuration;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,12 +36,29 @@ public class DynamicConfiguration {
 	@Autowired
 	GeneralConfiguration genConfiguration;
 	
-	private static Map<String, String> map = null;
+	private static Map<String, String> schduleMap = null;
+	private static Map<String, String> requirementsMap = null;
 	private static Logger LOGGER = LogManager.getLogger(DynamicConfiguration.class);
 	
 	public Map<String, String> getMap() {
-		
-		//LOGGER.debug("inside method getMap");
+		if (schduleMap == null) {
+			schduleMap = loadSchedule();
+		}
+		//map.forEach((k, v) -> System.out.println((k + "----" + v)));
+		return schduleMap;
+
+	}
+	
+	public Map<String, String> getRequirementsMap() {
+		if (requirementsMap == null) {
+			requirementsMap = loadReqMap();
+		}
+		//requirementsMap.forEach((k, v) -> LOGGER.debug((k + "----" + v)));
+		return requirementsMap;
+
+	}
+	
+	private Map<String, String> loadSchedule() {
 		
 		Properties properties = new Properties();
 		FileInputStream inputStream = null;
@@ -64,14 +85,36 @@ public class DynamicConfiguration {
 			}
 		}
 
-		map = new HashMap<String, String>();
-		map.putAll(properties.entrySet()
+		schduleMap = new HashMap<String, String>();
+		schduleMap.putAll(properties.entrySet()
 				.stream()
 				.collect(Collectors.toMap(e -> e.getKey().toString(), 
-						e -> e.getValue().toString())));	
-		//map.forEach((k, v) -> System.out.println((k + "----" + v)));
+						e -> e.getValue().toString())));
 		
-		return map;
+		return schduleMap;
+	}
+	
+	private Map<String, String> loadReqMap() {
 
+		String scheduleFileName = genConfiguration.getRootDir()
+				.concat(File.separator)
+				.concat(genConfiguration.getMapFolder())
+				.concat(File.separator)
+				.concat(genConfiguration.getRequirementsMapFile());
+		
+		requirementsMap = new HashMap<String, String>();
+		try (Stream<String> stream = Files.lines(Paths.get(scheduleFileName))) {
+			stream.forEach(line ->processLine(line));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return requirementsMap;
+	}
+
+	private Map<String, String> processLine(String line) {
+		
+		String[] values = line.split("\\|");
+		requirementsMap.put(values[0], values[1]);
+		return requirementsMap;
 	}
 }

@@ -9,14 +9,20 @@
 <body>
 	<div th:replace="fragments/topnav :: generalNavbar"></div>
 	<div>
+		<form th:action="@{/oTPstatus}" method="GET" id="my_form"></form>
 		<table>
 			<tbody>
 				<tr
-					th:style="${healthStatus.getDisplayTextResult()} == OK ? 'background: #468038' : 'background: #a84751'"
+					th:style="${healthStatus.getDisplayTextResult() == 'OK' ? 'background: #468038' : 'background: #a84751'}"
 					th:each="healthStatus : ${allHealths}">
 					<td th:text="${healthStatus.getDisplayText()}"></td>
 					<td th:text="${healthStatus.getHealthStatus()}"></td>
 					<td><a th:href="@{'/status/' + ${healthStatus.getDisplayType()} (logFile=${healthStatus.getLogFile()})}">view Details</a></td>
+				</tr>
+				<tr>
+					<td>
+						<button type="submit" form="my_form" th:name="extensiveReport" th:value="true">Extensive Report</button>
+					</td>
 				</tr>
 			</tbody>
 		</table>

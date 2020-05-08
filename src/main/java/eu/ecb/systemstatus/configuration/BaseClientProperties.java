@@ -5,6 +5,11 @@ public class BaseClientProperties {
 	
 	private String headerSpecificLink;
 	private String viewPowershellOutput;
+	private String noValidDataText;
+	private String okStatusText;
+	private String notOkStatusText;
+	private String defaultInterval;
+	private String defaultCutOffTime;
 	private String scheduleFolderRoot;
 	private String scheduleFolderName;
 	private String scheduleFileName;
@@ -16,6 +21,9 @@ public class BaseClientProperties {
 	private String sshScriptTocall;
 	private String envType;
 	private String fileDetailsPageText;
+	private String mapFolder;
+	private String requirementsMapFile;
+	private String fileMapFile;
 	
 	private String rootDir;
 	private String otEnvType;
@@ -47,6 +55,54 @@ public class BaseClientProperties {
 	private String envAccessPassword;
 	
 	
+	public String getDefaultCutOffTime() {
+		return defaultCutOffTime;
+	}
+	public void setDefaultCutOffTime(String defaultCutOffTime) {
+		this.defaultCutOffTime = defaultCutOffTime;
+	}
+	public String getDefaultInterval() {
+		return defaultInterval;
+	}
+	public void setDefaultInterval(String defaultInterval) {
+		this.defaultInterval = defaultInterval;
+	}
+	public String getOkStatusText() {
+		return okStatusText;
+	}
+	public void setOkStatusText(String okStatusText) {
+		this.okStatusText = okStatusText;
+	}
+	public String getNotOkStatusText() {
+		return notOkStatusText;
+	}
+	public void setNotOkStatusText(String notOkStatusText) {
+		this.notOkStatusText = notOkStatusText;
+	}
+	public String getNoValidDataText() {
+		return noValidDataText;
+	}
+	public void setNoValidDataText(String noValidDataText) {
+		this.noValidDataText = noValidDataText;
+	}
+	public String getRequirementsMapFile() {
+		return requirementsMapFile;
+	}
+	public void setRequirementsMapFile(String requirementsMapFile) {
+		this.requirementsMapFile = requirementsMapFile;
+	}
+	public String getFileMapFile() {
+		return fileMapFile;
+	}
+	public void setFileMapFile(String fileMapFile) {
+		this.fileMapFile = fileMapFile;
+	}
+	public String getMapFolder() {
+		return mapFolder;
+	}
+	public void setMapFolder(String mapFolder) {
+		this.mapFolder = mapFolder;
+	}
 	public String getViewPowershellOutput() {
 		return viewPowershellOutput;
 	}
