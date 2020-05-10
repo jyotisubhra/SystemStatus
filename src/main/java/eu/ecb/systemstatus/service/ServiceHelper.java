@@ -304,7 +304,7 @@ public class ServiceHelper {
 		return logLocation;
 	}
 
-	public void createInputFilesForScripts(String fileMapping, String srcLocation, boolean isExtensive) {
+	public void createFileInputForScripts(String fileMapping, String srcLocation, boolean isExtensive) {
 		
 		
 		File f = new File(srcLocation);

@@ -25,8 +25,8 @@ import org.springframework.core.env.Environment;
 @Configuration
 @ComponentScan(basePackages = { "eu.ecb.systemstatus" })
 @PropertySources({
-    @PropertySource("classpath:environments.properties"),
-    @PropertySource(value="file:environments.properties", ignoreResourceNotFound=true)
+    @PropertySource(value="${external.app.properties.file}", ignoreResourceNotFound=true),
+    @PropertySource("classpath:environments.properties")
 })
 public class DynamicConfiguration {
 	
@@ -96,11 +96,7 @@ public class DynamicConfiguration {
 	
 	private Map<String, String> loadReqMap() {
 
-		String scheduleFileName = genConfiguration.getRootDir()
-				.concat(File.separator)
-				.concat(genConfiguration.getMapFolder())
-				.concat(File.separator)
-				.concat(genConfiguration.getRequirementsMapFile());
+		String scheduleFileName = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getRequirementsMapFile());
 		
 		requirementsMap = new HashMap<String, String>();
 		try (Stream<String> stream = Files.lines(Paths.get(scheduleFileName))) {

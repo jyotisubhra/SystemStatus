@@ -79,13 +79,14 @@ public class MonitorController {
 		//String srcLoc = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getScriptPropertiesLocation()).concat(File.separator).concat("*");
 		String hostname = genConfiguration.getMonitoringHostName();
 		
-		String srcLoc = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getScriptPropertiesLocation()).concat(File.separator).concat(loadTime.toString());
-		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getMapFolder()).concat(File.separator).concat(genConfiguration.getFileMapFile());
-		serviceHelper.createInputFilesForScripts(fileMapping, srcLoc, false);
+		String fileSrcLoc = genConfiguration.getRootDir().concat(File.separator).concat(
+				genConfiguration.getScriptPropertiesLocation()).concat(File.separator).concat(loadTime.toString());
+		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getFileMapFile());
+		serviceHelper.createFileInputForScripts(fileMapping, fileSrcLoc, false);
 		
 		if (genConfiguration.getEnvType().equalsIgnoreCase("Windows")) {
 			String scriptToBeexecuted = genConfiguration.getWinScriptTocall();
-			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, fileSrcLoc, destinationLoc);
 		} else {
 			//TODO
 		}
@@ -127,15 +128,16 @@ public class MonitorController {
 									
 		String hostname = mdpConfiguration.getOtPrimaryHostname();
 		
-		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtPrimarySrcLocation()).concat(File.separator).concat(loadTime.toString());
-		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getMapFolder()).concat(File.separator).concat(genConfiguration.getFileMapFile());
-		serviceHelper.createInputFilesForScripts(fileMapping, srcLoc, isExtensive);
+		String fileSrcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(
+				mdpConfiguration.getOtPrimarySrcLocation()).concat(File.separator).concat(loadTime.toString());
+		String fileMapping = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtPrimaryMapFolder());
+		serviceHelper.createFileInputForScripts(fileMapping, fileSrcLoc, isExtensive);
 		
 		String scriptToBeexecuted = mdpConfiguration.getOtPrimaryScriptTocall();
 		if (mdpConfiguration.getOtPrimaryCallApproach().equalsIgnoreCase("INDV_FILE")) {
-			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, fileSrcLoc, destinationLoc);
 		} else {
-			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, fileSrcLoc, destinationLoc);
 		}
 		
 		List<HealthStatus> healthStatusList = service.getStatus(destinationLoc);
@@ -175,15 +177,16 @@ public class MonitorController {
 		
 		String hostname = mdpConfiguration.getOtSecondaryHostname();
 		
-		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtSecondarySrcLocation()).concat(File.separator).concat(loadTime.toString());
-		String fileMapping = genConfiguration.getRootDir().concat(File.separator).concat(genConfiguration.getMapFolder()).concat(File.separator).concat(genConfiguration.getFileMapFile());
-		serviceHelper.createInputFilesForScripts(fileMapping, srcLoc, isExtensive);
+		String fileSrcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(
+				mdpConfiguration.getOtSecondarySrcLocation()).concat(File.separator).concat(loadTime.toString());
+		String fileMapping = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOtSecondaryMapFolder());
+		serviceHelper.createFileInputForScripts(fileMapping, fileSrcLoc, isExtensive);
 		
 		String scriptToBeexecuted = mdpConfiguration.getOtSecondaryScriptTocall();
 		if (mdpConfiguration.getOtSecondaryCallApproach().equalsIgnoreCase("INDV_FILE")) {
-			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+			winRemoteConn.callRemotePerFile(scriptToBeexecuted, hostname, fileSrcLoc, destinationLoc);
 		} else {
-			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, srcLoc, destinationLoc);
+			winRemoteConn.callRemoteSystem(scriptToBeexecuted, hostname, fileSrcLoc, destinationLoc);
 		}
 		List<HealthStatus> healthStatusList = service.getStatus(destinationLoc);
 		return healthStatusList;

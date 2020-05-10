@@ -33,12 +33,14 @@ public class BaseClientProperties {
 	private String otPrimarySrcLocation;
 	private String otPrimaryScriptTocall;
 	private String otPrimaryCallApproach;
+	private String otPrimaryMapFolder;
 	
 	private String otSecondaryFolder;
 	private String otSecondaryHostname;
 	private String otSecondarySrcLocation;
 	private String otSecondaryScriptTocall;
 	private String otSecondaryCallApproach;
+	private String otSecondaryMapFolder;
 	private String scriptWaitTime;
 	
 	
@@ -55,6 +57,18 @@ public class BaseClientProperties {
 	private String envAccessPassword;
 	
 	
+	public String getOtPrimaryMapFolder() {
+		return otPrimaryMapFolder;
+	}
+	public void setOtPrimaryMapFolder(String otPrimaryMapFolder) {
+		this.otPrimaryMapFolder = otPrimaryMapFolder;
+	}
+	public String getOtSecondaryMapFolder() {
+		return otSecondaryMapFolder;
+	}
+	public void setOtSecondaryMapFolder(String otSecondaryMapFolder) {
+		this.otSecondaryMapFolder = otSecondaryMapFolder;
+	}
 	public String getDefaultCutOffTime() {
 		return defaultCutOffTime;
 	}
