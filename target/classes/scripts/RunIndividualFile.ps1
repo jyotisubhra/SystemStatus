@@ -64,6 +64,89 @@
 		$logFile = $destinationRoot + "\"  + $nameWithoutExt + ".log"
 		return $logFile
 	}
+	
+	function processIndividualFile ($inputFullPath, $logFile, $hostName) {
+		
+		foreach($line in [System.IO.File]::ReadLines($inputFullPath)) {
+	
+			$lines = $line -split ','
+			$ID = $lines[0]
+			$FolderLocation = $lines[1]
+			$FileName = $lines[2]
+			
+			$derivedFileName = Derived-FileName $FileName
+			
+			$size = "0"
+			$FileStatus = "AVL"
+			$noOfLines = "0"
+			$date = Get-Date -Format "yyyyMMdd"
+		    $time = Get-Date -Format "HH:mm:ss"
+			
+			$file = get-filename $lines[1] $derivedFileName
+		    Write-Host "Filename is: $file"
+		    
+		    if ($hostName -eq "localhost") {
+		    	$command = Test-Path $file
+		    } else {
+		    	$command = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
+		    }
+		    
+		    if (!$command) { 
+		    	Write-Warning "The file $filename is NOT available in the Locations"     	
+		    	$FileStatus = "NAVL"   	
+		  	} else {
+		    	Write-Host "The file $filename is available in the Locations"     	
+		    	$creationTime = get-creationTime "$file" "$hostName"
+		    	if (isOldCreationDate ($creationTime)) {
+		    		$FileStatus = "NAVL"
+		    		Write-Host 'The creationDate date is earlier than the current date'
+		    	} else {
+		    		Write-Host "current File AVL"
+		    		$date = $creationTime.ToString("yyyyMMdd")
+		    		$time = $creationTime.ToString("HH:mm:ss")
+		    		$noOfLines = get-noOfLines "$file" "$hostName"
+		    		$size = get-size "$file" "$hostName"
+		    	}
+		    	
+		    	Write-Host "File Size: $size, No Of Lines : $noOfLines, date: $date, Time: $time, FileStatus: $FileStatus"
+		    }  
+		    $outputValue = $lines[0] + "|"  + $FolderLocation + "|" + $derivedFileName + "|"  + $date + "|" + $time + "|" + $size + "|"  + $noOfLines + "|" + $FileStatus
+		    Write-Host "output is: $outputValue" 
+		    Add-Content -Value $outputValue -Path $logFile
+		}
+		
+	}
+	
+	function processIndividualInterfaceFile($inputFullPath, $logFile, $hostName) {
+		
+		foreach($line in [System.IO.File]::ReadLines($inputFullPath)) { 
+			
+			$lines = $line -split ','
+			$infId = $lines[0]
+			$srcSystem = $lines[1]
+			$targetSystem = $lines[2]
+			$targetSystemPort = $lines[3]
+			
+			Write-Host "target system is: $targetSystem" 
+			Write-Host "target system port is: $targetSystemPort" 
+			$connectStatus = connectionCheck $targetSystem $targetSystemPort
+			
+			$outputIntfValue = $infId + "|"  + $srcSystem + "|" + $targetSystem + "|"  + $targetSystemPort + "|" + $connectStatus
+	    	Write-Host "output is: $outputIntfValue" 
+	    	Add-Content -Value $outputIntfValue -Path $logFile
+			
+		}
+	}
+	
+	function connectionCheck ($targetSystem, $targetSystemPort) {
+		
+		$connectStatus = "NAVL"  
+		$t = New-Object Net.Sockets.TcpClient $targetSystem, $targetSystemPort 
+	    if($t.Connected) {
+	        $connectStatus = "AVL"  
+	    }
+	    return $connectStatus
+	}
 
 ### Start of process ###
 
@@ -85,51 +168,22 @@
 	Write-Host "logFile name: $logFile"
 	New-Item $logFile -ItemType File
 	
-	foreach($line in [System.IO.File]::ReadLines($inputFullPath)) {
-	
-		$lines = $line -split ','
-		$ID = $lines[0]
-		$FolderLocation = $lines[1]
-		$FileName = $lines[2]
+	$inputFileSize = get-size "$inputFullPath" "localhost"
 		
-		$derivedFileName = Derived-FileName $FileName
+	if ($inputFileSize -eq 0) {
+		Write-Host "Size of $inputFullPath is zero: $inputFileSize" 
+	} else {
+		Write-Host "Size of $inputFullPath is not zero: $inputFileSize" 
+		if ($inputFullPath -Match "interface") {
+			Write-Host "Processing Interface Files" 
+			$outputIntfValue = processIndividualInterfaceFile $inputFullPath $logFile $hostName
+		} else {
+			$outputValue = processIndividualFile $inputFullPath $logFile $hostName  
+		}
 		
-		$size = "0"
-		$FileStatus = "AVL"
-		$noOfLines = "0"
-		$date = Get-Date -Format "yyyyMMdd"
-	    $time = Get-Date -Format "HH:mm:ss"
-		
-		$file = get-filename $lines[1] $derivedFileName
-	    Write-Host "Filename is: $file"
-	    
-	    if ($hostName -eq "localhost") {
-	    	$command = Test-Path $file
-	    } else {
-	    	$command = Invoke-Command -ComputerName $hostName -scriptblock {param($file)(Test-Path $file)} -ArgumentList $file
-	    }
-	    
-	    if (!$command) { 
-	    	Write-Warning "The file $filename is NOT available in the Locations"     	
-	    	$FileStatus = "NAVL"   	
-	  	} else {
-	    	Write-Host "The file $filename is available in the Locations"     	
-	    	$creationTime = get-creationTime "$file" "$hostName"
-	    	if (isOldCreationDate ($creationTime)) {
-	    		$FileStatus = "NAVL"
-	    		Write-Host 'The creationDate date is earlier than the current date'
-	    	} else {
-	    		Write-Host "current File AVL"
-	    		$date = $creationTime.ToString("yyyyMMdd")
-	    		$time = $creationTime.ToString("HH:mm:ss")
-	    		$noOfLines = get-noOfLines "$file" "$hostName"
-	    		$size = get-size "$file" "$hostName"
-	    	}
-	    	
-	    	Write-Host "File Size: $size, No Of Lines : $noOfLines, date: $date, Time: $time, FileStatus: $FileStatus"
-	    }  
-	    $outputValue = $lines[0] + "|"  + $FolderLocation + "|" + $derivedFileName + "|"  + $date + "|" + $time + "|" + $size + "|"  + $noOfLines + "|" + $FileStatus
-	    Write-Host "output is: $outputValue" 
-	    Add-Content -Value $outputValue -Path $logFile
 	}
+
+### End of process ###
+	
+	
 	

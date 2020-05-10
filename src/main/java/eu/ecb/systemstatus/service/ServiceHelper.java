@@ -58,23 +58,23 @@ public class ServiceHelper {
 
 		HealthStatus healthStatus = null;
 		if (fileName.contains("interface")) {
-			healthStatus = getComponentHealth(fileName, 4);	
+			healthStatus = getComponentHealth(fileName, 4, false);	
 			healthStatus.setDisplayType("interface");
 		} else {
-			healthStatus = getComponentHealth(fileName, 7);	
+			healthStatus = getComponentHealth(fileName, 7, true);	
 			healthStatus.setDisplayType("file");
 		}
 		return healthStatus;
 	}
 
 
-	private HealthStatus getComponentHealth(String fileName, int pos) {
+	private HealthStatus getComponentHealth(String fileName, int pos, boolean fileCheckRequired) {
 
 		String displayText = new File(fileName).getName().replaceFirst("[.][^.]+$", "").toUpperCase().replace("_", " ");
 		String executionStatus = null;
 		String status = genConfig.getNotOkStatusText();
 		if (new File(fileName).length() != 0) {
-			status = getComponentStatus(fileName, pos);	
+			status = getComponentStatus(fileName, pos, fileCheckRequired);	
 			executionStatus = status;
 		} else {
 			status = genConfig.getOkStatusText();
@@ -84,11 +84,11 @@ public class ServiceHelper {
 		return healthStatus;
 	}
 
-	private String getComponentStatus(String fileName, int pos) {
+	private String getComponentStatus(String fileName, int pos, boolean fileCheckRequired) {
 		String status = genConfig.getNotOkStatusText();
 
 		try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
-			List<String> alltStatus = stream.filter(line -> !processLine(line, pos)).collect(Collectors.toList());
+			List<String> alltStatus = stream.filter(line -> !processLine(line, pos, fileCheckRequired)).collect(Collectors.toList());
 			LOGGER.debug(alltStatus);
 			if (alltStatus.size() == 0) {
 				status = genConfig.getOkStatusText();
@@ -99,15 +99,16 @@ public class ServiceHelper {
 		return status;
 	}
 
-	private boolean processLine(String line, int pos) {
+	private boolean processLine(String line, int pos, boolean fileCheckRequired) {
 
 
 		boolean status = false;
 		boolean isValidSize = true;
 		String[] values = line.split("\\|");
-
-		isValidSize = isValidSize(values[5].trim());
-
+		
+		if (fileCheckRequired) {
+			isValidSize = isValidSize(values[5].trim());
+		}
 		if (isValidSize && values[pos].trim().equalsIgnoreCase("AVL")) {
 			status = true;
 		}
@@ -361,12 +362,21 @@ public class ServiceHelper {
 	private String getContentByReqId(String reqId, boolean isExtensive) {
 		
 		String value = null;
-		if (isValidEntry(reqId, isExtensive)) {
+		if (reqId.contains("INF")) {
 			if (dynConfig.getRequirementsMap().get(reqId) != null) {
 				value = reqId.concat(",").concat(dynConfig.getRequirementsMap().get(reqId).trim());
 			} else {
 				//TODO - throw error
 				LOGGER.warn("Application configuration not set up properly For RequirementId: " + reqId);
+			}
+		} else {
+			if (isValidEntry(reqId, isExtensive)) {
+				if (dynConfig.getRequirementsMap().get(reqId) != null) {
+					value = reqId.concat(",").concat(dynConfig.getRequirementsMap().get(reqId).trim());
+				} else {
+					//TODO - throw error
+					LOGGER.warn("Application configuration not set up properly For RequirementId: " + reqId);
+				}
 			}
 		}
 		return value;

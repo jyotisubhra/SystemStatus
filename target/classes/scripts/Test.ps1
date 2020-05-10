@@ -9,3 +9,10 @@ Write-Host "output is: $command - $size - $creationTime"
 $previousDate = (get-date).AddDays(-1)
 $date = [DateTime]::Today.AddDays(-1).ToString("yyyyMMdd")
 Write-Host "$date"
+
+$t = New-Object Net.Sockets.TcpClient "google.com", 443
+	    if($t.Connected) {
+	        Write-Host "connected"
+	    } else {
+	    	Write-Host "not connected"
+	    }

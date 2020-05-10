@@ -8,7 +8,7 @@ background-color: #B0C4DE;
 }
 		
 td, th {
-border: 1px solid grey;
+border: 2px solid grey;
 text-align: left;
 padding: 8px;
 white-space: nowrap;
@@ -19,7 +19,7 @@ background-color: #dddddd;
 }
 		
 body {
-background-color: #E6E6FA;
+background-color: #B0C4DE;
 }
 button {
  width: 150px;

@@ -115,6 +115,37 @@
 	    Add-Content -Value $outputValue -Path $logFile
 		}
 	}
+	
+	function processIndividualInterfaceFile($inputFullPath, $logFile, $hostName) {
+		
+		foreach($line in [System.IO.File]::ReadLines($inputFullPath)) { 
+			
+			$lines = $line -split ','
+			$infId = $lines[0]
+			$srcSystem = $lines[1]
+			$targetSystem = $lines[2]
+			$targetSystemPort = $lines[3]
+			
+			Write-Host "target system is: $targetSystem" 
+			Write-Host "target system port is: $targetSystemPort" 
+			$connectStatus = connectionCheck $targetSystem $targetSystemPort
+			
+			$outputIntfValue = $infId + "|"  + $srcSystem + "|" + $targetSystem + "|"  + $targetSystemPort + "|" + $connectStatus
+	    	Write-Host "output is: $outputIntfValue" 
+	    	Add-Content -Value $outputIntfValue -Path $logFile
+			
+		}
+	}
+	
+	function connectionCheck ($targetSystem, $targetSystemPort) {
+		
+		$connectStatus = "NAVL"  
+		$t = New-Object Net.Sockets.TcpClient $targetSystem, $targetSystemPort 
+	    if($t.Connected) {
+	        $connectStatus = "AVL"  
+	    }
+	    return $connectStatus
+	}
 
 ### Start of process ###
 
@@ -140,7 +171,21 @@
 		Write-Host "logFile name: $logFile"
 		New-Item $logFile -ItemType File
 		
-		$outputValue = processIndividualFile $inputFullPath $logFile $hostName
+		$inputFileSize = get-size "$inputFullPath" "localhost"
 		
+		if ($inputFileSize -eq 0) {
+			Write-Host "Size of $inputFullPath is zero: $inputFileSize" 
+		} else {
+			Write-Host "Size of $inputFullPath is not zero: $inputFileSize" 
+			if ($inputFullPath -Match "interface") {
+				Write-Host "Processing Interface Files" 
+				$outputIntfValue = processIndividualInterfaceFile $inputFullPath $logFile $hostName
+			} else {
+				$outputValue = processIndividualFile $inputFullPath $logFile $hostName 
+			}
+			
+		}
 	}
+
+### End of process ###
 
