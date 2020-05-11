@@ -149,7 +149,7 @@ public class ServiceHelper {
 			//Arrays.stream(scheduledHrs).forEach(LOGGER::debug);
 			//LOGGER.debug("scheduleCondition = " + scheduleCondition);
 			isValidRecord = getSceduleData(scheduledHrs, scheduleCondition, currentHrs, isExtensive);
-			
+			//LOGGER.debug("Requirement Id : " + reqId + ", Status: " + isValidRecord);
 		} else {
 			LOGGER.warn("No Scheduler set fot this requirement Id: " + reqId);
 		}
@@ -328,7 +328,7 @@ public class ServiceHelper {
 
 	private String processFileMappingLine(String line, String srcLocation, boolean isExtensive) throws IOException {
 		
-		LOGGER.debug("line : " + line);
+		//LOGGER.debug("line : " + line);
 		
 		String[] values = line.split("\\|");
 		Path path = Paths.get(srcLocation.concat(File.separator).concat(values[0].trim()));
@@ -346,7 +346,7 @@ public class ServiceHelper {
 					});
 		
 		if (content.size() > 0) {
-			content.stream().forEach(System.out::println);
+			//content.stream().forEach(LOGGER::debug);
 			Files.write(path, content, charset, StandardOpenOption.APPEND);
 		} 
 		return null;

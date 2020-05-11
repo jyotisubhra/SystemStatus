@@ -47,7 +47,9 @@ public class BaseClientProperties {
 	private String acPrimaryFolder;
 	private String acSrcLocation;
 	private String oneToOneSrcLocation;
+	private String oneToOneFileMappingLoc;
 	private String oneToManySrcLocation;
+	private String oneToManyFileMappingLoc;
 	private String interfaceSrcLocation;
 	private String acPrimaryHostname;
 	private String acScriptTocall;
@@ -57,6 +59,19 @@ public class BaseClientProperties {
 	private String envAccessPassword;
 	
 	
+	
+	public String getOneToOneFileMappingLoc() {
+		return oneToOneFileMappingLoc;
+	}
+	public void setOneToOneFileMappingLoc(String oneToOneFileMappingLoc) {
+		this.oneToOneFileMappingLoc = oneToOneFileMappingLoc;
+	}
+	public String getOneToManyFileMappingLoc() {
+		return oneToManyFileMappingLoc;
+	}
+	public void setOneToManyFileMappingLoc(String oneToManyFileMappingLoc) {
+		this.oneToManyFileMappingLoc = oneToManyFileMappingLoc;
+	}
 	public String getOtPrimaryMapFolder() {
 		return otPrimaryMapFolder;
 	}

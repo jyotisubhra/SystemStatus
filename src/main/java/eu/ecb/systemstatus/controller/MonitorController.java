@@ -102,6 +102,7 @@ public class MonitorController {
 		model.addAttribute("allHealths", healthStatusList);
 		//model.addAttribute("loadTime", loadTime.toString());
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
+		model.addAttribute("extensiveRepURL", "/oTPstatus");
 		return "SystemStatus";
 	}
 	
@@ -150,6 +151,7 @@ public class MonitorController {
 		List<HealthStatus> healthStatusList = getOtSecondaryComponentStatus(requestParams.get("extensiveReport"));
 		model.addAttribute("allHealths", healthStatusList);
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
+		model.addAttribute("extensiveRepURL", "/oTSstatus");
 		return "SystemStatus";
 	}
 	
@@ -195,24 +197,39 @@ public class MonitorController {
 	@GetMapping("/aCstatus")
 	public String acStatus(@RequestParam Map<String,String> requestParams, Model model) {
 
-		List<HealthStatus> healthStatusList = getAcAllComponentStatus();
+		List<HealthStatus> healthStatusList = getAcAllComponentStatus(requestParams.get("extensiveReport"));
 		model.addAttribute("allHealths", healthStatusList);
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
+		model.addAttribute("extensiveRepURL", "/aCstatus");
 		return "SystemStatus";
 	}
 	
 	@GetMapping("/aCstatus/txt")
 	public @ResponseBody String acStatusTxt(@RequestParam Map<String,String> requestParams, Model model) {
 
-		List<HealthStatus> healthStatusList = getAcAllComponentStatus();
+		List<HealthStatus> healthStatusList = getAcAllComponentStatus(requestParams.get("extensiveReport"));
 		String value = service.convertIntoText(healthStatusList);
 		return value;
 	}
 
-	private List<HealthStatus> getAcAllComponentStatus() {
+	private List<HealthStatus> getAcAllComponentStatus(String extensiveReport) {
+		
+		boolean isExtensive = false;
+		if (extensiveReport != null && extensiveReport.equalsIgnoreCase("true")) {
+			isExtensive = true;
+		}
 		Long loadTime = Calendar.getInstance().getTimeInMillis();
 		String destinationLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getAcPrimaryFolder()).concat(File.separator).concat(loadTime.toString());
 		String srcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getAcSrcLocation()).concat(File.separator).concat("*");
+		
+		String oneToOneFileMapping = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOneToOneFileMappingLoc());		
+		String oneToOneSrcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOneToOneSrcLocation()).concat(File.separator).concat(loadTime.toString());;
+		serviceHelper.createFileInputForScripts(oneToOneFileMapping, oneToOneSrcLoc, isExtensive);
+		
+		String oneToManyFileMappingLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOneToManyFileMappingLoc());	
+		String oneToManySrcLoc = mdpConfiguration.getRootDir().concat(File.separator).concat(mdpConfiguration.getOneToManySrcLocation()).concat(File.separator).concat(loadTime.toString());
+		serviceHelper.createFileInputForScripts(oneToManyFileMappingLoc, oneToManySrcLoc, isExtensive);
+		
 		String hostname = mdpConfiguration.getAcPrimaryHostname();
 				
 		String scriptToBeexecuted = mdpConfiguration.getAcScriptTocall();

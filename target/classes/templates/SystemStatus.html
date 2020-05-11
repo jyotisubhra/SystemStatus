@@ -9,7 +9,7 @@
 <body>
 	<div th:replace="fragments/topnav :: generalNavbar"></div>
 	<div>
-		<form th:action="@{/oTPstatus}" method="GET" id="my_form"></form>
+		<form th:action="${extensiveRepURL}" method="GET" id="my_form"></form>
 		<table>
 			<tbody>
 				<tr
