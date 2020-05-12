@@ -261,10 +261,13 @@ public class MonitorController {
 
 		//String loadTime = requestParams.get("loadTime");
 		String logFile = requestParams.get("logFile");
+		String pageHeader = new File(logFile).getName().replaceFirst("[.][^.]+$", "").toUpperCase().replace("_", " ");
 		
 		List<ExternalInterfaceConn> otInterfaceConnDetails = service.getAllInterfaceDetails(logFile);
 		model.addAttribute("otInterfaceConnDetails", otInterfaceConnDetails);
 		model.addAttribute("headers", genConfiguration.getHeaderDetails());
+		model.addAttribute("detailText" , genConfiguration.getFileDetailsPageText());
+		model.addAttribute("pageHeader", pageHeader);
 		return "InterfaceDetailsStatus";
 	}
 
